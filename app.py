@@ -45,8 +45,8 @@ if module == t("module_scouting"):
         else:
             max_minutes = 3000
 
-        # Default to 10% of max, so early-season data is not filtered out
-        default_min = max(0, min(450, max_minutes // 4))
+        # Default to 0 if early season (not enough data), 450 for full seasons
+        default_min = 0 if max_minutes < 450 else 450
         min_mins = st.sidebar.slider(t("min_minutes"), 0, max(max_minutes, 1), default_min)
 
         if player_col:
