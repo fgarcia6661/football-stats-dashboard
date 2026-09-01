@@ -5,7 +5,9 @@ import pandas as pd
 @st.cache_resource(show_spinner=False)
 def get_understat_instance(leagues, seasons):
     from pathlib import Path
-    return sd.Understat(leagues=leagues, seasons=seasons, no_cache=False, data_dir=Path("soccerdata_cache"))
+    base_dir = Path(__file__).parent.parent.parent
+    cache_dir = base_dir / "soccerdata_cache"
+    return sd.Understat(leagues=leagues, seasons=seasons, no_cache=False, data_dir=cache_dir)
 
 @st.cache_data(show_spinner=False, ttl=43200) # Caché de 12 horas
 def load_team_shots(leagues, seasons):
