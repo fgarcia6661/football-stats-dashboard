@@ -1,14 +1,30 @@
 import os
+import sys
+import shutil
 import tempfile
-# Patch SeleniumBase para Streamlit Cloud (Permisos de escritura en drivers)
+
+# Patch SeleniumBase para Streamlit Cloud (Permisos de escritura)
+# Streamlit Cloud tiene el site-packages en modo solo lectura, así que
+# copiamos la librería entera a /tmp y obligamos a Python a usar esa.
 try:
-    import seleniumbase.core.browser_launcher as bl
-    temp_driver_dir = os.path.join(tempfile.gettempdir(), "seleniumbase_drivers")
-    os.makedirs(temp_driver_dir, exist_ok=True)
-    bl.DRIVER_DIR = temp_driver_dir
-    bl.LOCAL_CHROMEDRIVER = os.path.join(temp_driver_dir, "chromedriver")
-    bl.LOCAL_UC_DRIVER = os.path.join(temp_driver_dir, "uc_driver")
-except ImportError:
+    if os.path.exists("/home/adminuser"):
+        import seleniumbase
+        sb_orig = os.path.dirname(seleniumbase.__file__)
+        if not sb_orig.startswith("/tmp"):
+            sb_tmp = "/tmp/seleniumbase"
+            if not os.path.exists(sb_tmp):
+                shutil.copytree(sb_orig, sb_tmp)
+            
+            if "/tmp" not in sys.path:
+                sys.path.insert(0, "/tmp")
+            
+            # Limpiar cache de módulos para forzar la carga desde /tmp
+            if "seleniumbase" in sys.modules:
+                del sys.modules["seleniumbase"]
+            for key in list(sys.modules.keys()):
+                if key.startswith("seleniumbase."):
+                    del sys.modules[key]
+except Exception as e:
     pass
 
 import streamlit as st
