@@ -51,42 +51,106 @@ if module == t("module_scouting"):
 
         if player_col:
             players = sorted(stats_df[player_col].dropna().astype(str).unique().tolist())
-            player_a = st.selectbox(t("player_a_select"), players, index=0)
-            player_b = st.selectbox(t("player_b_select"), players, index=min(1, len(players) - 1))
+            
+            # Selector de jugadores
+            col_sel1, col_sel2 = st.columns(2)
+            with col_sel1:
+                player_a = st.selectbox(t("player_a_select"), players, index=0)
+            with col_sel2:
+                player_b = st.selectbox(t("player_b_select"), players, index=min(1, len(players) - 1))
 
-            metrics = ["Performance_Gls", "Performance_Ast", "Per 90 Minutes_Gls", "Per 90 Minutes_Ast"]
-            metric_labels = ["Goles", "Asistencias", "Goles p/90", "Asistencias p/90"]
+            st.info("ℹ️ **Nota sobre métricas:** Las estadísticas de xG, xA y Presiones ya no son de acceso gratuito en ciertas ligas de FBref. Se han añadido métricas avanzadas equivalentes (defensa, posesión y pases).")
+
+            if "Performance_Gls" in stats_df.columns and "Performance_Ast" in stats_df.columns and min_col:
+                g_a = pd.to_numeric(stats_df["Performance_Gls"], errors="coerce").fillna(0) + pd.to_numeric(stats_df["Performance_Ast"], errors="coerce").fillna(0)
+                mins = pd.to_numeric(stats_df[min_col], errors="coerce").fillna(0)
+                # Avoid division by zero by setting to 9999 or max
+                stats_df["Min_por_G_A"] = (mins / g_a.replace(0, pd.NA)).fillna(9999)
+
+            # Diccionario de métricas disponibles (etiqueta amigable -> columna FBref)
+            AVAILABLE_METRICS = {
+                "Goles": "Performance_Gls",
+                "Asistencias": "Performance_Ast",
+                "Minutos por G/A": "Min_por_G_A",
+                "Goles p/90": "Per 90 Minutes_Gls",
+                "Entradas (Tackles)": "Tackles_Tkl",
+                "Acierto Pases (%)": "Total_Cmp%",
+                "Progresión Pases (Dist)": "Total_PrgDist",
+                "Regates intentados": "Take-Ons_Att",
+                "Regates acertados": "Take-Ons_Succ",
+                "Intercepciones": "Int",
+                "Despejes (Clearances)": "Clr",
+                "Duelos def. ganados (%)": "Challenges_Tkl%",
+                "Acciones def. (Tkl+Int)": "Tkl+Int",
+                "Recuperaciones": "Rec"
+            }
+
+            # Filtrar solo las que existen realmente en el dataframe
+            valid_metric_keys = [k for k, v in AVAILABLE_METRICS.items() if v in stats_df.columns]
+            
+            # Dejar que el usuario elija
+            selected_metric_labels = st.multiselect(
+                "Seleccionar métricas para el radar (orden agujas del reloj):", 
+                options=valid_metric_keys,
+                default=valid_metric_keys[:6] if len(valid_metric_keys) >= 6 else valid_metric_keys
+            )
 
             if st.button("Generar Radar"):
-                # Apply minutes filter (min_col already converted to numeric above)
-                if min_col:
-                    valid_players = stats_df[stats_df[min_col] >= min_mins].copy()
+                if len(selected_metric_labels) < 3:
+                    st.error("⚠️ Debes seleccionar al menos 3 métricas para dibujar un radar.")
                 else:
-                    valid_players = stats_df.copy()
-
-                if valid_players.empty:
-                    st.error(f"⚠️ Ningún jugador supera {min_mins} minutos. Baja el filtro de minutos mínimos en la barra lateral.")
-                else:
-                    for m in metrics:
-                        if m in valid_players.columns:
-                            valid_players[m] = pd.to_numeric(valid_players[m], errors="coerce").fillna(0)
-                            valid_players[f"{m}_pct"] = valid_players[m].rank(pct=True) * 100
-                        else:
-                            valid_players[f"{m}_pct"] = 0
-
-                    p_a = valid_players[valid_players[player_col] == player_a]
-                    p_b = valid_players[valid_players[player_col] == player_b]
-
-                    if p_a.empty:
-                        st.error(f"⚠️ {player_a} no tiene suficientes minutos para aparecer en el radar. Baja el filtro.")
-                    elif p_b.empty:
-                        st.error(f"⚠️ {player_b} no tiene suficientes minutos para aparecer en el radar. Baja el filtro.")
+                    if min_col:
+                        valid_players = stats_df[stats_df[min_col] >= min_mins].copy()
                     else:
-                        stats_a = [float(p_a[f"{m}_pct"].values[0]) for m in metrics]
-                        stats_b = [float(p_b[f"{m}_pct"].values[0]) for m in metrics]
+                        valid_players = stats_df.copy()
 
-                        fig = plot_player_radar(stats_a, stats_b, metric_labels, metric_labels, player_a_name=player_a, player_b_name=player_b)
-                        st.pyplot(fig)
+                    if valid_players.empty:
+                        st.error(f"⚠️ Ningún jugador supera {min_mins} minutos. Baja el filtro de minutos mínimos en la barra lateral.")
+                    else:
+                        metrics = [AVAILABLE_METRICS[k] for k in selected_metric_labels]
+                        metric_labels = selected_metric_labels
+
+                        for m in metrics:
+                            valid_players[m] = pd.to_numeric(valid_players[m].astype(str).str.replace("%", ""), errors="coerce").fillna(0)
+                            if m == "Min_por_G_A":
+                                # Invertir el ranking: menos minutos es mejor
+                                valid_players[f"{m}_pct"] = valid_players[m].rank(pct=True, ascending=False) * 100
+                            else:
+                                valid_players[f"{m}_pct"] = valid_players[m].rank(pct=True) * 100
+
+                        p_a = valid_players[valid_players[player_col] == player_a]
+                        p_b = valid_players[valid_players[player_col] == player_b]
+
+                        if p_a.empty:
+                            st.error(f"⚠️ {player_a} no tiene suficientes minutos para aparecer en el radar.")
+                        elif p_b.empty:
+                            st.error(f"⚠️ {player_b} no tiene suficientes minutos para aparecer en el radar.")
+                        else:
+                            stats_a_pct = [float(p_a[f"{m}_pct"].values[0]) for m in metrics]
+                            stats_b_pct = [float(p_b[f"{m}_pct"].values[0]) for m in metrics]
+                            
+                            def format_raw(val, metric):
+                                if metric == "Min_por_G_A" and val >= 9999: return "-"
+                                if pd.isna(val): return "-"
+                                return f"{float(val):.2f}".rstrip('0').rstrip('.')
+
+                            stats_a_raw = [format_raw(p_a[m].values[0], m) for m in metrics]
+                            stats_b_raw = [format_raw(p_b[m].values[0], m) for m in metrics]
+
+                            col1, col2 = st.columns([1.5, 1])
+                            
+                            with col1:
+                                fig = plot_player_radar(stats_a_pct, stats_b_pct, metric_labels, metric_labels, player_a_name=player_a, player_b_name=player_b)
+                                st.pyplot(fig, use_container_width=True)
+                                
+                            with col2:
+                                st.markdown("### Tabla Comparativa (Valores Absolutos)")
+                                comp_df = pd.DataFrame({
+                                    "Métrica": metric_labels,
+                                    player_a: stats_a_raw,
+                                    player_b: stats_b_raw
+                                })
+                                st.dataframe(comp_df, hide_index=True, use_container_width=True)
         else:
             st.warning(t("no_data"))
     else:
