@@ -1,3 +1,16 @@
+import os
+import tempfile
+# Patch SeleniumBase para Streamlit Cloud (Permisos de escritura en drivers)
+try:
+    import seleniumbase.core.browser_launcher as bl
+    temp_driver_dir = os.path.join(tempfile.gettempdir(), "seleniumbase_drivers")
+    os.makedirs(temp_driver_dir, exist_ok=True)
+    bl.DRIVER_DIR = temp_driver_dir
+    bl.LOCAL_CHROMEDRIVER = os.path.join(temp_driver_dir, "chromedriver")
+    bl.LOCAL_UC_DRIVER = os.path.join(temp_driver_dir, "uc_driver")
+except ImportError:
+    pass
+
 import streamlit as st
 import pandas as pd
 from src.i18n import t
