@@ -20,6 +20,12 @@ Aplicación web interactiva para el análisis táctico, seguimiento del rendimie
 
 ---
 
+### 2.1 Optimizaciones para Streamlit Community Cloud (Modificaciones)
+* Parcheo dinámico de seleniumbase.core.browser_launcher en src/data_loaders/fbref_loader.py para desviar la instalación de uc_driver a /tmp/sb_drivers, solucionando el error [Errno 13] Permission denied.
+* Inclusión de packages.txt para proveer chromium y chromium-driver a nivel de sistema operativo en contenedores Debian.
+* Implementación de una barra de progreso simulada asíncrona (src/progress.py) usando ThreadPoolExecutor y dd_script_run_ctx para notificar al usuario sobre el porcentaje de carga y el ETA mientras ocurren bloqueos síncronos.
+* Amplicación del selector a las últimas 5 temporadas incluyendo la actual (ej: 2627).
+
 ## 3. Arquitectura y Requisitos Funcionales
 
 ### 3.1 Pipeline de Datos
