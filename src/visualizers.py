@@ -39,7 +39,7 @@ def plot_shot_map(shots_df, team_name):
     ax.set_title(f"{t('shot_map_title')} - {team_name}", color='white', fontsize=18)
     return fig
 
-def plot_player_radar(player_a_stats, player_b_stats, metrics, params_dict):
+def plot_player_radar(player_a_stats, player_b_stats, metrics, params_dict, player_a_name="Jugador A", player_b_name="Jugador B"):
     """
     player_a_stats and player_b_stats are lists/arrays of percentiles (0-100).
     """
@@ -61,12 +61,19 @@ def plot_player_radar(player_a_stats, player_b_stats, metrics, params_dict):
 
     # Draw radar
     rings_inner = radar.draw_circles(ax=ax, facecolor='#282a2d', edgecolor='#393b40')
+    
+    # We pass labels to radar kwargs if supported, or manually create legend
     radar_output = radar.draw_radar_compare(
         player_a_stats, player_b_stats, ax=ax,
-        kwargs_radar={'facecolor': '#1f77b4', 'alpha': 0.6},
-        kwargs_compare={'facecolor': '#d62728', 'alpha': 0.6}
+        kwargs_radar={'facecolor': '#1f77b4', 'alpha': 0.6, 'label': player_a_name},
+        kwargs_compare={'facecolor': '#d62728', 'alpha': 0.6, 'label': player_b_name}
     )
     radar_poly, radar_poly2, vertices1, vertices2 = radar_output
+
+    # Add legend manually using the polygons
+    ax.legend([radar_poly, radar_poly2], [player_a_name, player_b_name], 
+              loc='upper right', bbox_to_anchor=(1.1, 1.1),
+              facecolor='#282a2d', edgecolor='#393b40', labelcolor='white', fontsize=10)
 
     # Labels
     range_labels = radar.draw_range_labels(ax=ax, fontsize=10, color='white')

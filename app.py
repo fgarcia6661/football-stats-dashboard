@@ -55,7 +55,7 @@ if module == t("module_scouting"):
                 # Mock percentiles
                 stats_a = [80, 60, 70, 90]
                 stats_b = [60, 80, 50, 70]
-                fig = plot_player_radar(stats_a, stats_b, metrics, metrics)
+                fig = plot_player_radar(stats_a, stats_b, metrics, metrics, player_a_name=player_a, player_b_name=player_b)
                 st.pyplot(fig)
         else:
             st.warning(t("no_data"))
