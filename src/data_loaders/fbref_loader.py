@@ -22,7 +22,7 @@ def get_fbref_instance(leagues, seasons):
     cache_dir = base_dir / "soccerdata_cache"
     return sd.FBref(leagues=leagues, seasons=seasons, no_cache=False, data_dir=cache_dir)
 
-@st.cache_data(show_spinner=False, ttl=43200) # Caché de 12 horas
+@st.cache_data(show_spinner=False, ttl=43200, max_entries=1) # Caché de 12 horas, max 1 para ahorrar RAM
 def load_player_season_stats(leagues, seasons, stat_type="standard"):
     try:
         from pathlib import Path
@@ -38,7 +38,7 @@ def load_player_season_stats(leagues, seasons, stat_type="standard"):
         st.error(f"Error loading player stats ({stat_type}): {e}")
         return pd.DataFrame()
 
-@st.cache_data(show_spinner=False, ttl=43200) # Caché de 12 horas
+@st.cache_data(show_spinner=False, ttl=43200, max_entries=1) # Caché de 12 horas
 def load_team_season_stats(leagues, seasons, stat_type="standard"):
     try:
         fbref = get_fbref_instance(leagues, seasons)

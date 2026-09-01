@@ -9,7 +9,7 @@ def get_understat_instance(leagues, seasons):
     cache_dir = base_dir / "soccerdata_cache"
     return sd.Understat(leagues=leagues, seasons=seasons, no_cache=False, data_dir=cache_dir)
 
-@st.cache_data(show_spinner=False, ttl=43200) # Caché de 12 horas
+@st.cache_data(show_spinner=False, ttl=43200, max_entries=1) # Caché de 12 horas
 def load_team_shots(leagues, seasons):
     try:
         us = get_understat_instance(leagues, seasons)
