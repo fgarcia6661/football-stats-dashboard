@@ -26,7 +26,7 @@ module = st.sidebar.radio(t("module_selector"), [
 leagues_list = ["ESP-La Liga", "ENG-Premier League", "ITA-Serie A", "GER-Bundesliga", "FRA-Ligue 1"]
 league = st.sidebar.selectbox(t("league_select"), leagues_list)
 
-seasons_list = ["2425", "2324", "2223", "2122", "2021"]
+seasons_list = ["2627", "2526", "2425", "2324", "2223", "2122", "2021"]
 season = st.sidebar.selectbox(t("season_select"), seasons_list)
 
 # App Logic
