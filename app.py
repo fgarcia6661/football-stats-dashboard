@@ -12,37 +12,39 @@ st.title(t("app_title"))
 # Sidebar
 st.sidebar.title(t("sidebar_title"))
 module = st.sidebar.radio(t("module_selector"), [
-    t("module_scouting"), 
-    t("module_shots"), 
+    t("module_scouting"),
+    t("module_shots"),
     t("module_teams")
 ])
 
 league = st.sidebar.selectbox(t("league_select"), ["ESP-La Liga", "ENG-Premier League", "ITA-Serie A", "GER-Bundesliga", "FRA-Ligue 1"])
-season = st.sidebar.selectbox(t("season_select"), ["2324", "2223"]) # Example seasons
+# Últimas 5 temporadas, asumiendo el año actual 2026
+seasons_list = ["2627", "2526", "2425", "2324", "2223"]
+season = st.sidebar.selectbox(t("season_select"), seasons_list)
 
 # App Logic
 if module == t("module_scouting"):
     st.header(t("player_radar_title"))
-    
+
     with st.spinner(t("loading_data")):
         stats_df = load_player_season_stats(league, season)
-    
+
     if not stats_df.empty:
         # Check if Minutes Played exists, adjust the key based on actual fbref flattened columns
         min_mins = st.sidebar.slider(t("min_minutes"), 0, 3000, 450)
-        
-        # We need to map actual column names here depending on fbref output. 
+
+        # We need to map actual column names here depending on fbref output.
         # For this prototype, we'll assume standard columns are there.
         # Player names are usually in 'player' column.
         if 'player' in stats_df.columns:
             players = stats_df['player'].dropna().unique().tolist()
             player_a = st.selectbox(t("player_a_select"), players)
             player_b = st.selectbox(t("player_b_select"), players)
-            
+
             # Placeholder for radar plot (assuming we have percentiles calculated)
             # In a real scenario, you'd calculate percentiles for specific metrics
             metrics = ["Expected Goals (xG)", "Expected Assists (xA)", "Progressive Passes (PrgP)", "Progressive Carries (PrgC)"]
-            
+
             if st.button("Generar Radar"):
                 # Mock percentiles
                 stats_a = [80, 60, 70, 90]
@@ -54,14 +56,14 @@ if module == t("module_scouting"):
 
 elif module == t("module_shots"):
     st.header(t("shot_map_title"))
-    
+
     with st.spinner(t("loading_data")):
         shots_df = load_team_shots(league, season)
-    
+
     if not shots_df.empty and 'team' in shots_df.columns:
         teams = shots_df['team'].dropna().unique().tolist()
         team = st.sidebar.selectbox(t("team_select"), teams)
-        
+
         team_shots = shots_df[shots_df['team'] == team]
         fig = plot_shot_map(team_shots, team)
         st.pyplot(fig)
@@ -70,17 +72,18 @@ elif module == t("module_shots"):
 
 elif module == t("module_teams"):
     st.header(t("team_scatter_title"))
-    
+
     with st.spinner(t("loading_data")):
         team_df = load_team_season_stats(league, season)
-    
+
     if not team_df.empty:
         # Map actual columns. Mocking columns for scatter
         cols = team_df.columns.tolist()
         x_col = st.selectbox("Eje X", cols)
         y_col = st.selectbox("Eje Y", cols)
-        
+
         fig = plot_team_scatter(team_df, x_col, y_col)
         st.pyplot(fig)
     else:
         st.warning(t("no_data"))
+
