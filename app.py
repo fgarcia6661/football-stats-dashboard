@@ -81,8 +81,8 @@ if module == t("module_scouting"):
                         valid_players[f"{m}_pct"] = 0
                 
                 # Get specific player stats
-                p_a = valid_players[valid_players['player'] == player_a]
-                p_b = valid_players[valid_players['player'] == player_b]
+                p_a = valid_players[valid_players['Player'] == player_a]
+                p_b = valid_players[valid_players['Player'] == player_b]
                 
                 stats_a = [p_a[f"{m}_pct"].values[0] if not p_a.empty else 0 for m in metrics]
                 stats_b = [p_b[f"{m}_pct"].values[0] if not p_b.empty else 0 for m in metrics]
