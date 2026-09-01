@@ -5,6 +5,17 @@ from ..utils import flatten_multiindex_columns
 
 @st.cache_resource(show_spinner=False)
 def get_fbref_instance(leagues, seasons):
+    import os
+    import tempfile
+    try:
+        import seleniumbase.core.browser_launcher as bl
+        temp_dir = os.path.join(tempfile.gettempdir(), "sb_drivers")
+        os.makedirs(temp_dir, exist_ok=True)
+        bl.DRIVER_DIR = temp_dir
+        bl.LOCAL_UC_DRIVER = os.path.join(temp_dir, "uc_driver")
+    except Exception:
+        pass
+    
     # Initialize with no_cache=False to use local disk cache
     return sd.FBref(leagues=leagues, seasons=seasons, no_cache=False)
 
