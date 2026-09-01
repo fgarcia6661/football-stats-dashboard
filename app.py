@@ -107,11 +107,31 @@ if module == t("module_scouting"):
                     if valid_players.empty:
                         st.error(f"⚠️ Ningún jugador supera {min_mins} minutos. Baja el filtro de minutos mínimos en la barra lateral.")
                     else:
-                        metrics = [AVAILABLE_METRICS[k] for k in selected_metric_labels]
-                        metric_labels = selected_metric_labels
+                        metrics = []
+                        metric_labels = []
+                        missing_metrics = []
+
+                        for k in selected_metric_labels:
+                            m = AVAILABLE_METRICS[k]
+                            # Limpiar cadenas como '%' y convertir a numérico, manteniendo NaN primero
+                            valid_players[m] = pd.to_numeric(valid_players[m].astype(str).str.replace("%", ""), errors="coerce")
+                            
+                            # Si toda la columna es NaN (FBref no provee este dato)
+                            if valid_players[m].isna().all():
+                                missing_metrics.append(k)
+                            else:
+                                metrics.append(m)
+                                metric_labels.append(k)
+
+                        if missing_metrics:
+                            st.warning(f"⚠️ Las siguientes métricas no están disponibles en la base de datos para esta liga/temporada y se omitirán: {', '.join(missing_metrics)}. FBref/Opta ha retirado estos datos de sus tablas públicas.")
+
+                        if len(metrics) < 3:
+                            st.error("⚠️ No hay suficientes métricas con datos reales (mínimo 3) para dibujar el radar.")
+                            st.stop()
 
                         for m in metrics:
-                            valid_players[m] = pd.to_numeric(valid_players[m].astype(str).str.replace("%", ""), errors="coerce").fillna(0)
+                            valid_players[m] = valid_players[m].fillna(0)
                             if m == "Min_por_G_A":
                                 # Invertir el ranking: menos minutos es mejor
                                 valid_players[f"{m}_pct"] = valid_players[m].rank(pct=True, ascending=False) * 100

@@ -34,7 +34,7 @@ def load_player_season_stats(league, season):
 
         # FBref file pattern
         filemask = f"players_{league}_{season}_{{}}.html"
-        
+
         def parse_table(stat_type):
             filepath = cache_dir / filemask.format(stat_type)
             if not filepath.exists():
@@ -68,7 +68,7 @@ def load_player_season_stats(league, season):
         # Merge them on base columns
         merge_cols = ["Player", "Nation", "Pos", "Squad", "Age", "Born"]
         df_final = df_std.copy()
-        
+
         for df_extra in [df_def, df_pos, df_pas]:
             if not df_extra.empty:
                 # keep only merge cols + new cols to avoid duplicates
