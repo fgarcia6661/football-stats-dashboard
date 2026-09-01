@@ -1,4 +1,14 @@
 import os
+import sys
+
+if sys.platform.startswith("linux"):
+    try:
+        from pyvirtualdisplay import Display
+        disp = Display(visible=0, size=(1920, 1080))
+        disp.start()
+    except Exception:
+        pass
+
 import streamlit as st
 import pandas as pd
 from src.i18n import t
