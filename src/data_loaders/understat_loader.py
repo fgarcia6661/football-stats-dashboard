@@ -2,11 +2,11 @@ import streamlit as st
 import soccerdata as sd
 import pandas as pd
 
-@st.cache_data(show_spinner=False)
+@st.cache_resource(show_spinner=False)
 def get_understat_instance(leagues, seasons):
     return sd.Understat(leagues=leagues, seasons=seasons, no_cache=False)
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, ttl=43200) # Caché de 12 horas
 def load_team_shots(leagues, seasons):
     try:
         us = get_understat_instance(leagues, seasons)
@@ -18,7 +18,7 @@ def load_team_shots(leagues, seasons):
         st.error(f"Error loading Understat shots: {e}")
         return pd.DataFrame()
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, ttl=43200) # Caché de 12 horas
 def load_match_shots(leagues, seasons, match_id):
     # This is a placeholder since soccerdata's read_shots gets all loaded matches
     df = load_team_shots(leagues, seasons)
