@@ -1,0 +1,11 @@
+streamlit
+soccerdata
+ScraperFC
+mplsoccer
+pandas
+numpy
+matplotlib
+seaborn
+requests
+lxml
+
