@@ -25,6 +25,12 @@ def get_fbref_instance(leagues, seasons):
 @st.cache_data(show_spinner=False, ttl=43200) # Caché de 12 horas
 def load_player_season_stats(leagues, seasons, stat_type="standard"):
     try:
+        from pathlib import Path
+        base_dir = Path(__file__).parent.parent.parent
+        cache_dir = base_dir / "soccerdata_cache"
+        filepath = cache_dir / f"players_{leagues}_{seasons}_{stat_type}.html"
+        if not filepath.exists():
+            raise FileNotFoundError(f"File not found! {filepath.absolute()}")
         fbref = get_fbref_instance(leagues, seasons)
         df = fbref.read_player_season_stats(stat_type=stat_type)
         return flatten_multiindex_columns(df)
