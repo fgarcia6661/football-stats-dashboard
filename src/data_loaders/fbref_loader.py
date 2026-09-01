@@ -84,6 +84,14 @@ def load_player_season_stats(league, season):
                 if pd.isna(n): return n
                 return "".join(c for c in unicodedata.normalize('NFD', str(n)) if unicodedata.category(c) != 'Mn').lower()
                 
+            # Monkey-patch soccerdata para que no use tls_requests (que falla en Streamlit Cloud)
+            import requests
+            def _mock_init_session(self, headers=None):
+                s = requests.Session()
+                if headers: s.headers.update(headers)
+                return s
+            sd.Understat._init_session = _mock_init_session
+
             understat = sd.Understat(leagues=league, seasons=season, no_cache=False, data_dir=cache_dir)
             df_us = understat.read_player_season_stats().reset_index()
             
