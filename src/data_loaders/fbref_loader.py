@@ -17,7 +17,9 @@ def get_fbref_instance(leagues, seasons):
         pass
 
     # Initialize with no_cache=False to use local disk cache
-    return sd.FBref(leagues=leagues, seasons=seasons, no_cache=False)
+    # Set data_dir to a local folder so we can commit the cache to GitHub
+    from pathlib import Path
+    return sd.FBref(leagues=leagues, seasons=seasons, no_cache=False, data_dir=Path("soccerdata_cache"))
 
 @st.cache_data(show_spinner=False, ttl=43200) # Caché de 12 horas
 def load_player_season_stats(leagues, seasons, stat_type="standard"):
