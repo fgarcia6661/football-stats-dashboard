@@ -16,10 +16,11 @@ def get_fbref_instance(leagues, seasons):
     except Exception:
         pass
 
-    # Initialize with no_cache=False to use local disk cache
-    # Set data_dir to a local folder so we can commit the cache to GitHub
+    # Set data_dir to an absolute local folder so we can commit the cache to GitHub
     from pathlib import Path
-    return sd.FBref(leagues=leagues, seasons=seasons, no_cache=False, data_dir=Path("soccerdata_cache"))
+    base_dir = Path(__file__).parent.parent.parent
+    cache_dir = base_dir / "soccerdata_cache"
+    return sd.FBref(leagues=leagues, seasons=seasons, no_cache=False, data_dir=cache_dir)
 
 @st.cache_data(show_spinner=False, ttl=43200) # Caché de 12 horas
 def load_player_season_stats(leagues, seasons, stat_type="standard"):
