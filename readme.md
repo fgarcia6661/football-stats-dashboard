@@ -13,7 +13,10 @@ Aplicación web interactiva para el análisis táctico, seguimiento del rendimie
   * `ScraperFC` (scrapers de eventos y partidos de WhoScored)
   * `pandas`, `numpy`
 * **Gráficos Tácticos y Visualización:** `mplsoccer`, `matplotlib`, `seaborn`
-* **Rendimiento y Persistencia:** Caché nativa de Streamlit (`@st.cache_data`) combinada con la caché en disco local de `soccerdata` para evitar solicitudes web redundantes y prevenir bloqueos por exceso de peticiones (HTTP 429).
+* **Rendimiento y Persistencia:**
+  * Uso de `@st.cache_resource` para mantener de forma eficiente en memoria las instancias de los scrapers (conectores).
+  * Caché de datos mediante `@st.cache_data(ttl=43200)` para invalidar y refrescar los datos automáticamente cada 12 horas, garantizando que el dashboard se autoactualice.
+  * Uso combinado con la caché en disco local de `soccerdata` (`no_cache=False`) para mitigar los bloqueos HTTP 429.
 
 ---
 
@@ -112,11 +115,11 @@ Aplicación web interactiva para el análisis táctico, seguimiento del rendimie
 
 ### Paso 3: Conectores de Datos (src/data_loaders/)
 * `fbref_loader.py`:
-  * Inicializar `soccerdata.FBref` con almacenamiento en disco habilitado (`no_cache=False`).
-  * Métodos cacheados con `@st.cache_data`: `load_player_season_stats()`, `load_team_season_stats()`.
+  * Inicializar `soccerdata.FBref` con almacenamiento en disco habilitado (`no_cache=False`) persistido en memoria mediante `@st.cache_resource`.
+  * Métodos con expiración de 12h (`@st.cache_data(ttl=43200)`): `load_player_season_stats()`, `load_team_season_stats()`.
 * `understat_loader.py`:
-  * Inicializar `soccerdata.Understat`.
-  * Métodos cacheados: `load_team_shots()`, `load_match_shots()`.
+  * Inicializar `soccerdata.Understat` gestionado con `@st.cache_resource`.
+  * Métodos con expiración de 12h: `load_team_shots()`, `load_match_shots()`.
 
 ### Paso 4: Visualizadores Tácticos (src/visualizers.py)
 * `plot_shot_map(shots_df, team_name)`: Mapa de tiros escalado y traducido.
