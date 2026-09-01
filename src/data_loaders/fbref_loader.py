@@ -75,6 +75,38 @@ def load_player_season_stats(league, season):
                 new_cols = [c for c in df_extra.columns if c not in df_final.columns or c in merge_cols]
                 df_final = pd.merge(df_final, df_extra[new_cols], on=merge_cols, how="left")
 
+        # --- Understat xG / xA ---
+        try:
+            import unicodedata
+            from difflib import get_close_matches
+            
+            def clean_name(n):
+                if pd.isna(n): return n
+                return "".join(c for c in unicodedata.normalize('NFD', str(n)) if unicodedata.category(c) != 'Mn').lower()
+                
+            understat = sd.Understat(leagues=league, seasons=season, no_cache=False, data_dir=cache_dir)
+            df_us = understat.read_player_season_stats().reset_index()
+            
+            # Limpiar nombres para cruce
+            df_us['Player_match'] = df_us['player'].apply(clean_name)
+            us_names = df_us['Player_match'].dropna().tolist()
+            
+            def fuzzy_match(n):
+                if n in us_names: return n
+                matches = get_close_matches(n, us_names, n=1, cutoff=0.75)
+                return matches[0] if matches else n
+                
+            df_final['Player_match'] = df_final['Player'].apply(clean_name).apply(fuzzy_match)
+            
+            # Quedarnos solo con xg y xa (evitar duplicados de jugador)
+            df_us_to_merge = df_us[['Player_match', 'xg', 'xa']].drop_duplicates(subset=['Player_match'])
+            df_us_to_merge = df_us_to_merge.rename(columns={'xg': 'Expected_xG', 'xa': 'Expected_xA'})
+            
+            df_final = pd.merge(df_final, df_us_to_merge, on='Player_match', how='left')
+            df_final = df_final.drop(columns=['Player_match'])
+        except Exception as e:
+            st.warning(f"No se pudieron cargar datos de Understat (xG/xA): {e}")
+
         return df_final
     except Exception as e:
         st.error(f"Error loading FBref player stats: {e}")

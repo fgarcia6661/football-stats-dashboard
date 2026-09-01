@@ -59,19 +59,21 @@ if module == t("module_scouting"):
             with col_sel2:
                 player_b = st.selectbox(t("player_b_select"), players, index=min(1, len(players) - 1))
 
-            st.info("ℹ️ **Nota sobre métricas:** Las estadísticas de xG, xA y Presiones ya no son de acceso gratuito en ciertas ligas de FBref. Se han añadido métricas avanzadas equivalentes (defensa, posesión y pases).")
-
+            st.info("ℹ️ **Nota sobre métricas:** Se ha añadido una integración con Understat para recuperar Goles Esperados (xG) y Asistencias Esperadas (xA). Las métricas defensivas avanzadas (como Regates o Acierto de pases) siguen restringidas por Opta.")
+            
             if "Performance_Gls" in stats_df.columns and "Performance_Ast" in stats_df.columns and min_col:
                 g_a = pd.to_numeric(stats_df["Performance_Gls"], errors="coerce").fillna(0) + pd.to_numeric(stats_df["Performance_Ast"], errors="coerce").fillna(0)
                 mins = pd.to_numeric(stats_df[min_col], errors="coerce").fillna(0)
                 # Avoid division by zero by setting to 9999 or max
                 stats_df["Min_por_G_A"] = (mins / g_a.replace(0, pd.NA)).fillna(9999)
 
-            # Diccionario de métricas disponibles (etiqueta amigable -> columna FBref)
+            # Diccionario de métricas disponibles (etiqueta amigable -> columna FBref/Understat)
             AVAILABLE_METRICS = {
                 "Goles": "Performance_Gls",
                 "Asistencias": "Performance_Ast",
                 "Minutos por G/A": "Min_por_G_A",
+                "Goles Esperados (xG)": "Expected_xG",
+                "Asistencias Esperadas (xA)": "Expected_xA",
                 "Goles p/90": "Per 90 Minutes_Gls",
                 "Entradas (Tackles)": "Tackles_Tkl",
                 "Acierto Pases (%)": "Total_Cmp%",
