@@ -10,9 +10,9 @@ def run_with_progress(func, *args, estimated_time=20, title="Cargando datos...",
     # hasta que pase 0.5s. Si pasa 0.5s y no ha terminado, mostramos progreso.
 
     progress_placeholder = st.empty()
-    
+
     ctx = get_script_run_ctx()
-    
+
     def wrapped_func():
         add_script_run_ctx(threading.current_thread(), ctx)
         return func(*args, **kwargs)
