@@ -47,15 +47,47 @@ if module == t("module_scouting"):
             player_a = st.selectbox(t("player_a_select"), players)
             player_b = st.selectbox(t("player_b_select"), players)
 
-            # Placeholder for radar plot (assuming we have percentiles calculated)
-            # In a real scenario, you'd calculate percentiles for specific metrics
-            metrics = ["Expected Goals (xG)", "Expected Assists (xA)", "Progressive Passes (PrgP)", "Progressive Carries (PrgC)"]
+            metrics = [
+                "Performance_Gls", 
+                "Performance_Ast", 
+                "Per 90 Minutes_Gls", 
+                "Per 90 Minutes_Ast"
+            ]
+            metric_labels = [
+                "Goles", 
+                "Asistencias", 
+                "Goles p/90", 
+                "Asistencias p/90"
+            ]
 
             if st.button("Generar Radar"):
-                # Mock percentiles
-                stats_a = [80, 60, 70, 90]
-                stats_b = [60, 80, 50, 70]
-                fig = plot_player_radar(stats_a, stats_b, metrics, metrics, player_a_name=player_a, player_b_name=player_b)
+                import pandas as pd
+                
+                # Make sure minutes are numeric
+                if 'Playing Time_Min' in stats_df.columns:
+                    stats_df['Playing Time_Min'] = pd.to_numeric(stats_df['Playing Time_Min'].astype(str).str.replace(',', ''), errors='coerce').fillna(0)
+                else:
+                    stats_df['Playing Time_Min'] = 0
+                
+                # Use only players with more than min_minutes
+                valid_players = stats_df[stats_df['Playing Time_Min'] >= min_mins].copy()
+                
+                # Calculate percentiles
+                for m in metrics:
+                    if m in valid_players.columns:
+                        valid_players[m] = pd.to_numeric(valid_players[m], errors='coerce').fillna(0)
+                        valid_players[f"{m}_pct"] = valid_players[m].rank(pct=True) * 100
+                    else:
+                        valid_players[f"{m}_pct"] = 0
+                
+                # Get specific player stats
+                p_a = valid_players[valid_players['player'] == player_a]
+                p_b = valid_players[valid_players['player'] == player_b]
+                
+                stats_a = [p_a[f"{m}_pct"].values[0] if not p_a.empty else 0 for m in metrics]
+                stats_b = [p_b[f"{m}_pct"].values[0] if not p_b.empty else 0 for m in metrics]
+                
+                fig = plot_player_radar(stats_a, stats_b, metric_labels, metric_labels, player_a_name=player_a, player_b_name=player_b)
                 st.pyplot(fig)
         else:
             st.warning(t("no_data"))

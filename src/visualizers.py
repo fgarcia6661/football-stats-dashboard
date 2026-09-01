@@ -61,7 +61,7 @@ def plot_player_radar(player_a_stats, player_b_stats, metrics, params_dict, play
 
     # Draw radar
     rings_inner = radar.draw_circles(ax=ax, facecolor='#282a2d', edgecolor='#393b40')
-    
+
     # We pass labels to radar kwargs if supported, or manually create legend
     radar_output = radar.draw_radar_compare(
         player_a_stats, player_b_stats, ax=ax,
@@ -71,7 +71,7 @@ def plot_player_radar(player_a_stats, player_b_stats, metrics, params_dict, play
     radar_poly, radar_poly2, vertices1, vertices2 = radar_output
 
     # Add legend manually using the polygons
-    ax.legend([radar_poly, radar_poly2], [player_a_name, player_b_name], 
+    ax.legend([radar_poly, radar_poly2], [player_a_name, player_b_name],
               loc='upper right', bbox_to_anchor=(1.1, 1.1),
               facecolor='#282a2d', edgecolor='#393b40', labelcolor='white', fontsize=10)
 
