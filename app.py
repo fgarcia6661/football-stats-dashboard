@@ -5,6 +5,7 @@ from src.i18n import t
 from src.data_loaders.fbref_loader import load_player_season_stats, load_team_season_stats
 from src.data_loaders.understat_loader import load_team_shots
 from src.visualizers import plot_shot_map, plot_player_radar, plot_team_scatter
+from src.progress import run_with_progress
 
 st.set_page_config(page_title=t("app_title"), layout="wide")
 
@@ -27,8 +28,7 @@ season = st.sidebar.selectbox(t("season_select"), seasons_list)
 if module == t("module_scouting"):
     st.header(t("player_radar_title"))
 
-    with st.spinner(t("loading_data")):
-        stats_df = load_player_season_stats(league, season)
+    stats_df = run_with_progress(load_player_season_stats, league, season, estimated_time=20, title=t("loading_data"))
 
     if not stats_df.empty:
         # Check if Minutes Played exists, adjust the key based on actual fbref flattened columns
@@ -58,8 +58,7 @@ if module == t("module_scouting"):
 elif module == t("module_shots"):
     st.header(t("shot_map_title"))
 
-    with st.spinner(t("loading_data")):
-        shots_df = load_team_shots(league, season)
+    shots_df = run_with_progress(load_team_shots, league, season, estimated_time=10, title=t("loading_data"))
 
     if not shots_df.empty and 'team' in shots_df.columns:
         teams = shots_df['team'].dropna().unique().tolist()
@@ -74,8 +73,7 @@ elif module == t("module_shots"):
 elif module == t("module_teams"):
     st.header(t("team_scatter_title"))
 
-    with st.spinner(t("loading_data")):
-        team_df = load_team_season_stats(league, season)
+    team_df = run_with_progress(load_team_season_stats, league, season, estimated_time=20, title=t("loading_data"))
 
     if not team_df.empty:
         # Map actual columns. Mocking columns for scatter

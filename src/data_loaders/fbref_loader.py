@@ -15,7 +15,7 @@ def get_fbref_instance(leagues, seasons):
         bl.LOCAL_UC_DRIVER = os.path.join(temp_dir, "uc_driver")
     except Exception:
         pass
-    
+
     # Initialize with no_cache=False to use local disk cache
     return sd.FBref(leagues=leagues, seasons=seasons, no_cache=False)
 
